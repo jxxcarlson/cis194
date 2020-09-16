@@ -18,9 +18,53 @@ import           Data.Char
 -}
 baz = \f p s -> fmap (first f) $ runParser p s
 
+{-
+  > runParser (fmap ord (char 'a')) "abc"
+  Just (97,"bc")
+-}
 instance Functor Parser where
    -- fmap :: (a -> b) -> Parser a -> Parser b
-   fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
+   -- fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
+   fmap f p = wrap $ \s -> fmap (first f) $ (unwrap p) s
+
+
+{-
+
+  > :t pura ord
+  pura ord :: Parser (Char -> Int)
+
+  > :t unwrap $ pura ord
+  unwrap $ pura ord :: String -> Maybe (Char -> Int, String)
+
+-}
+unwrap :: Parser a -> (String -> Maybe (a, String))
+unwrap p = runParser p
+
+{-
+
+  > :t wrap $ unwrap $ pura ord
+  wrap $ unwrap $ pura ord :: Parser (Char -> Int)
+
+-}
+wrap :: (String -> Maybe (a, String)) -> Parser a
+wrap p = Parser {runParser = p}
+
+
+
+{-
+
+  > :t pura "foo"
+  pura "foo" :: Parser [Char]
+
+  > :t pura ord
+  pura ord :: Parser (Char -> Int)
+
+  > :t (runParser (pura ord))
+  (runParser (pura ord)) :: String -> Maybe (Char -> Int, String)
+
+-}
+pura :: a -> Parser a
+pura a = Parser { runParser = \s -> Just (a, s) }
 
 
 first :: (a -> b) -> (a,c) -> (b,c)
