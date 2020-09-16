@@ -28,6 +28,19 @@ instance Functor Parser where
    fmap f p = wrap $ \s -> fmap (first f) $ (unwrap p) s
 
 
+instance Applicative Parser where
+  -- pure :: a -> Parser a
+  pure a = wrap (\s -> Just (a, s))
+  -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
+  (<*>) pf pa =
+         let
+            inner = \s -> case (unwrap pf) s of
+                          Nothing -> Nothing
+                          Just (f, s') -> (unwrap $ fmap f pa) s'
+         in
+           wrap inner
+
+
 {-
 
   > :t pura ord
