@@ -4,6 +4,38 @@ module LogAnalysis where
 
 import Log
 
+-- TREE MANAGEMENT
+
+{-
+
+   data MessageTree = Leaf
+                     | Node MessageTree LogMessage MessageTree
+        deriving (Show, Eq)
+-}
+insert :: LogMessage -> MessageTree -> MessageTree
+insert msg Leaf = Node Leaf msg Leaf
+insert p@(LogMessage _ ts' _) (Node left q@(LogMessage _ ts _) right) =
+  if ts' > ts then
+    Node left q (insert p right)
+  else
+    Node (insert p left) q right
+insert (Unknown _) tree = tree
+
+
+
+-- PARSER
+
+{-
+> parse testData
+  [  LogMessage Info 1098 "ferrets! Where CAN I have dropped them, I wonder?' Alice guessed in a"
+    , LogMessage Warning 3883 "Will you, won't you, will you, won't you, won't you join the dance?"
+    , LogMessage (Error 9) 0 "1501 i91d900 (achDocaterfaut/input"
+  ]
+
+-}
+parse :: String -> [LogMessage]
+parse str =
+  fmap logMessage (lines str)
 
 logMessage :: String -> LogMessage
 logMessage cs =
@@ -54,6 +86,14 @@ digits (a:cs) = ([],a:cs)
 
 -- TEST STRINGS
 
+testData :: String
+testData  = i ++ "\n" ++ w ++ "\n" ++ e
+
+w :: String
 w = "W 3883 Will you, won't you, will you, won't you, won't you join the dance?"
+
+i :: String
 i = "I 1098 ferrets! Where CAN I have dropped them, I wonder?' Alice guessed in a"
+
+e :: String
 e = "E 9 1501 i91d900 (achDocaterfaut/input"
