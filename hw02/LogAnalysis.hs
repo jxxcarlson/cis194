@@ -12,7 +12,7 @@ messageType ('I':(' ':cs)) = (Info, cs)
 messageType ('W':(' ':cs)) = (Warning, cs)
 messageType ('E':(' ':cs)) = let (k, cs') = int cs in (Error k, cs')
 messageType _ = (Error (-1), "")
--- messageType _ = Error 0
+
 
 int :: String -> (Int, String)
 int = (\(ns, cs) -> (evalDigits ns, cs)) . digits
@@ -36,8 +36,7 @@ digits ('6':cs) = let (ns,cs_) = digits cs in ((6:ns),cs_)
 digits ('7':cs) = let (ns,cs_) = digits cs in ((7:ns),cs_)
 digits ('8':cs) = let (ns,cs_) = digits cs in ((8:ns),cs_)
 digits ('9':cs) = let (ns,cs_) = digits cs in ((9:ns),cs_)
-digits (_:cs) = ([],cs)
-digits _ = ([],"")
+digits (a:cs) = ([],a:cs)
 
 
 
