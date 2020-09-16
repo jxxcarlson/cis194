@@ -6,19 +6,6 @@ import           Data.Char
 
 
 {-
-  > baz ord (char 'A') "ABC"
-  Just (65,"BC")
-
-  > :t baz
-  baz :: (a -> b) -> Parser a -> String -> Maybe (b, String)
-
-  :t runParser
-  runParser :: Parser a -> String -> Maybe (a, String)
-
--}
-baz = \f p s -> fmap (first f) $ runParser p s
-
-{-
   > runParser (fmap ord (char 'a')) "abc"
   Just (97,"bc")
 -}
@@ -27,7 +14,18 @@ instance Functor Parser where
    -- fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
    fmap f p = wrap $ \s -> fmap (first f) $ (unwrap p) s
 
+{-
 
+  > :t pure ord <*> char 'a'
+  pure ord <*> char 'a' :: Parser Int
+
+  > runParser (pure ord <*> char 'a') "abc"
+  Just (97,"bc")
+
+  > runParser (pure ord <*> char 'a') "def"
+  Nothing
+
+-}
 instance Applicative Parser where
   -- pure :: a -> Parser a
   pure a = wrap (\s -> Just (a, s))
@@ -40,6 +38,9 @@ instance Applicative Parser where
          in
            wrap inner
 
+
+
+--- HELPERS ---
 
 {-
 
@@ -61,23 +62,6 @@ unwrap p = runParser p
 -}
 wrap :: (String -> Maybe (a, String)) -> Parser a
 wrap p = Parser {runParser = p}
-
-
-
-{-
-
-  > :t pura "foo"
-  pura "foo" :: Parser [Char]
-
-  > :t pura ord
-  pura ord :: Parser (Char -> Int)
-
-  > :t (runParser (pura ord))
-  (runParser (pura ord)) :: String -> Maybe (Char -> Int, String)
-
--}
-pura :: a -> Parser a
-pura a = Parser { runParser = \s -> Just (a, s) }
 
 
 first :: (a -> b) -> (a,c) -> (b,c)
@@ -134,3 +118,36 @@ posInt = Parser f
 ------------------------------------------------------------
 -- Your code goes below here
 ------------------------------------------------------------
+
+
+--- SCRATH WORK ---
+
+{-
+  > baz ord (char 'A') "ABC"
+  Just (65,"BC")
+
+  > :t baz
+  baz :: (a -> b) -> Parser a -> String -> Maybe (b, String)
+
+  :t runParser
+  runParser :: Parser a -> String -> Maybe (a, String)
+
+-}
+baz = \f p s -> fmap (first f) $ runParser p s
+
+
+
+{-
+
+  > :t pura "foo"
+  pura "foo" :: Parser [Char]
+
+  > :t pura ord
+  pura ord :: Parser (Char -> Int)
+
+  > :t (runParser (pura ord))
+  (runParser (pura ord)) :: String -> Maybe (Char -> Int, String)
+
+-}
+pura :: a -> Parser a
+pura a = Parser { runParser = \s -> Just (a, s) }
