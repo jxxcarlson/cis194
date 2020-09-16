@@ -6,6 +6,11 @@ import Log
 
 -- TREE MANAGEMENT
 
+
+build :: [LogMessage] -> MessageTree
+build [] = Leaf
+build (lm: lms) = insert lm (build lms)
+
 {-
 
    data MessageTree = Leaf
