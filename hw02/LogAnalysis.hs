@@ -5,6 +5,18 @@ module LogAnalysis where
 import Log
 
 
+logMessage :: String -> LogMessage
+logMessage cs =
+  let
+    (msg, cs1) = messageType cs
+    (ts, cs2) = int cs1
+  in
+    LogMessage msg ts (trim cs2)
+
+trim :: String -> String
+trim [] = []
+trim (' ':cs) = trim cs
+trim cs = cs
 
 
 messageType :: String -> (MessageType, String)
