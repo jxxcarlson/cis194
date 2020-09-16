@@ -5,20 +5,13 @@ module LogAnalysis where
 import Log
 
 
--- logMessage :: (MessageType, String) -> LogMessage
--- logMessage (messageType, cs) =
---   let
---     (ts, cs_) = int cs
---   in
---   LogMessage messageType ts cs_
 
 
-  messageType :: String -> (MessageType, String)
-  messageType ('I':(' ':cs)) = (Info, cs)
-  messageType ('W':(' ':cs)) = (Warning, cs)
-  messageType ('E':(' ':cs)) = let (k, cs') = int cs in (Error k, cs')
-  messageType _ = (Error (-1), "")
-  -- messageType _ = Error 0
+messageType :: String -> (MessageType, String)
+messageType ('I':(' ':cs)) = (Info, cs)
+messageType ('W':(' ':cs)) = (Warning, cs)
+messageType ('E':(' ':cs)) = let (k, cs') = int cs in (Error k, cs')
+messageType _ = (Error (-1), "")
 -- messageType _ = Error 0
 
 int :: String -> (Int, String)
