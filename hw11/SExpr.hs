@@ -78,3 +78,9 @@ trailingParen = (char ')') <* spaces
 
 parenthesizedExpression :: Parser SExpr 
 parenthesizedExpression = (leadingParen *> (Comb <$> (zeroOrMore sexpr))) <* trailingParen
+
+legal :: String -> Bool
+legal source =
+   case runParser sexpr source of
+      Nothing -> False
+      Just (_, residual) -> residual == ""
