@@ -53,9 +53,36 @@ import           Data.Char
   > runParser abp_ "bacd"
   Nothing
 
+
+  --- EXERCISE 3c ---
+
+
+
 -}
 abp :: Parser (Char, Char)
 abp = ap <*> bp
+
+
+
+{-
+  > runParser (posInt' <*> space) "12 ab"
+  Just (12,"ab")
+-}
+posInt' = fmap (\n ->  (\n_ -> n)) posInt
+
+posInt'' = fmap (\n ->  (\n_ -> n:[n_] )) posInt
+
+space = char ' '
+
+space' = fmap (\n -> (\n_ -> n_)) space
+
+{-
+
+  > runParser  (posInt'' <*> (space' <*> posInt)) "12 34 abc"
+  Just ([12,34]," abc")
+
+-}
+
 
 {-
 
