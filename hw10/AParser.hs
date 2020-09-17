@@ -1,13 +1,82 @@
- module AParser () where
+module AParser () where
 
 import           Control.Applicative
 
 import           Data.Char
 
+{-
+
+  > ap =  fmap (\c -> (\_ -> c)) (char 'a')
+  > bp = char 'b'
+  > abp = ap <*> bp
+
+  > :t ap
+  ap :: Parser (p -> Char)
+
+  > :t bp
+  bp :: Parser Char
+
+> :t abp
+  abp :: Parser Char
+
+
+  > runParser abp "abxyz"
+  Just ('a',"xyz")
+
+  > runParser abp "baxyz"
+  Nothing
+
+  -- EXERCISE 3a --
+
+  > ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
+  > abp = ap <*> bp
+
+  > :t abp
+  abp :: Parser (Char, Char)
+
+  >
+  Just (('a','b'),"cd")
+
+  > runParser abp "xbcd"
+  Nothing
+
+  > runParser abp "axcd"
+  Nothing
+
+  -- EXERCISE 3b --
+
+  > abp_ = fmap (\(x,y) -> ()) abp
+  > :t abp_
+  abp_ :: Parser ()
+  > runParser abp_ "abcd"
+  Just ((),"cd")
+  > runParser abp_ "bacd"
+  Nothing
+
+-}
+abp :: Parser (Char, Char)
+abp = ap <*> bp
+
+{-
+
+> bp = char 'b'
+
+> ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
+> runParser (ap <*> bp) "abcd"
+Just (('a','b'),"cd")
+
+-}
+ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
+
+
+
+bp = char 'b'
 
 {-
   > runParser (fmap ord (char 'a')) "abc"
   Just (97,"bc")
+
+
 -}
 instance Functor Parser where
    -- fmap :: (a -> b) -> Parser a -> Parser b
