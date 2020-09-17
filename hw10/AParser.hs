@@ -191,3 +191,32 @@ intOrUppercase = (fmap (\x -> ()) posInt) <|> (fmap (\c -> ()) (satisfy isUpper)
   Nothing
 
 -}
+
+
+
+-------------------------------------------------
+-- Experiment: parse digits
+--------------------------------------------------
+
+
+digit :: Parser Char
+digit = satisfy isDigit
+
+
+digit' :: Parser [Char]
+digit' = fmap(\c -> [c]) digit
+
+
+digit'' :: Parser ([Char] -> [Char])
+digit'' = fmap (\a -> (\b -> a ++ b )) digit'
+
+
+digits :: Parser [Char]
+digits = digit'' <*> digits <|> digit'
+
+{-
+
+  > runParser digits "1123 abc"
+  Just ("1123"," abc")
+
+-}

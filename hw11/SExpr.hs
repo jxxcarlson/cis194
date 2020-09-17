@@ -7,25 +7,43 @@ module SExpr where
 import AParser
 import Control.Applicative
 
+import Data.Char
+
 ------------------------------------------------------------
 --  1. Parsing repetitions
 ------------------------------------------------------------
 
 zeroOrMore :: Parser a -> Parser [a]
-zeroOrMore p = undefined
+zeroOrMore p =
+   let
+     p' =  (\a -> [a]) <$> p
+     p'' = (\a -> (\b -> a ++ b)) <$> p'
+   in
+     (p'' <*> (zeroOrMore p) <|> p') <|> pure []
 
 oneOrMore :: Parser a -> Parser [a]
-oneOrMore p = undefined
+oneOrMore p = 
+  let
+    p' = (\a -> [a]) <$> p
+    p'' = (\a -> (\b -> a ++ b)) <$> (oneOrMore p)
+  in
+    p'' <*> p'
+
 
 ------------------------------------------------------------
 --  2. Utilities
 ------------------------------------------------------------
 
 spaces :: Parser String
-spaces = undefined
+spaces = zeroOrMore (char ' ')
 
 ident :: Parser String
-ident = undefined
+ident = 
+   let
+    p' = (\a -> (\b -> a:b)) <$> (satisfy isAlpha)  
+    -- Parser ([Char] -> [Char])
+  in
+  p' <*> zeroOrMore (satisfy isAlphaNum)
 
 ------------------------------------------------------------
 --  3. Parsing S-expressions
@@ -33,7 +51,7 @@ ident = undefined
 
 -- An "identifier" is represented as just a String; however, only
 -- those Strings consisting of a letter followed by any number of
--- letters and digits are valid identifiers.
+-- letters and digits are vali:d identifiers.
 type Ident = String
 
 -- An "atom" is either an integer value or an identifier.
@@ -44,3 +62,19 @@ data Atom = N Integer | I Ident
 data SExpr = A Atom
            | Comb [SExpr]
   deriving Show
+
+atom :: Parser Atom 
+atom = N <$> (posInt <* spaces) <|> I <$> (ident <* spaces)
+
+sexpr :: Parser SExpr
+sexpr = parenthesizedExpression  <|> A <$> atom 
+
+
+leadingParen :: Parser Char
+leadingParen = (char '(') <* spaces
+
+trailingParen :: Parser Char
+trailingParen = (char ')') <* spaces
+
+parenthesizedExpression :: Parser SExpr 
+parenthesizedExpression = (leadingParen *> (Comb <$> (zeroOrMore sexpr))) <* trailingParen

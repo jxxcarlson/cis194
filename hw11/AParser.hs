@@ -33,7 +33,7 @@ instance Functor Parser where
   fmap = inParser . fmap . fmap . first
 
 instance Applicative Parser where
-   pure a = Parser (\s -> Just (a, s)
+   pure a = Parser (\s -> Just (a, s))
    p1 <*> p2 = Parser (\s ->
          case runParser p1 s of
             Nothing -> Nothing
@@ -44,3 +44,4 @@ instance Applicative Parser where
 instance Alternative Parser where
   empty = Parser (const Nothing)
   Parser p1 <|> Parser p2 = Parser $ liftA2 (<|>) p1 p2
+
