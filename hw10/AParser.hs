@@ -1,168 +1,8 @@
 module AParser () where
 
-import           Control.Applicative
+import  Control.Applicative
 
-import           Data.Char
-
-{-
-
-  > ap =  fmap (\c -> (\_ -> c)) (char 'a')
-  > bp = char 'b'
-  > abp = ap <*> bp
-
-  > :t ap
-  ap :: Parser (p -> Char)
-
-  > :t bp
-  bp :: Parser Char
-
-> :t abp
-  abp :: Parser Char
-
-
-  > runParser abp "abxyz"
-  Just ('a',"xyz")
-
-  > runParser abp "baxyz"
-  Nothing
-
-  -- EXERCISE 3a --
-
-  > ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
-  > abp = ap <*> bp
-
-  > :t abp
-  abp :: Parser (Char, Char)
-
-  >
-  Just (('a','b'),"cd")
-
-  > runParser abp "xbcd"
-  Nothing
-
-  > runParser abp "axcd"
-  Nothing
-
-  -- EXERCISE 3b --
-
-  > abp_ = fmap (\(x,y) -> ()) abp
-  > :t abp_
-  abp_ :: Parser ()
-  > runParser abp_ "abcd"
-  Just ((),"cd")
-  > runParser abp_ "bacd"
-  Nothing
-
-
-  --- EXERCISE 3c ---
-
-
-
--}
-abp :: Parser (Char, Char)
-abp = ap <*> bp
-
-
-
-{-
-  > runParser (posInt' <*> space) "12 ab"
-  Just (12,"ab")
--}
-posInt' = fmap (\n ->  (\n_ -> n)) posInt
-
-posInt'' = fmap (\n ->  (\n_ -> n:[n_] )) posInt
-
-space = char ' '
-
-space' = fmap (\n -> (\n_ -> n_)) space
-
-{-
-
-  > runParser  (posInt'' <*> (space' <*> posInt)) "12 34 abc"
-  Just ([12,34]," abc")
-
--}
-
-
-{-
-
-> bp = char 'b'
-
-> ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
-> runParser (ap <*> bp) "abcd"
-Just (('a','b'),"cd")
-
--}
-ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
-
-
-
-bp = char 'b'
-
-{-
-  > runParser (fmap ord (char 'a')) "abc"
-  Just (97,"bc")
-
-
--}
-instance Functor Parser where
-   -- fmap :: (a -> b) -> Parser a -> Parser b
-   -- fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
-   fmap f p = wrap $ \s -> fmap (first f) $ (unwrap p) s
-
-{-
-
-  > :t pure ord <*> char 'a'
-  pure ord <*> char 'a' :: Parser Int
-
-  > runParser (pure ord <*> char 'a') "abc"
-  Just (97,"bc")
-
-  > runParser (pure ord <*> char 'a') "def"
-  Nothing
-
--}
-instance Applicative Parser where
-  -- pure :: a -> Parser a
-  pure a = wrap (\s -> Just (a, s))
-  -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
-  (<*>) pf pa =
-         let
-            inner = \s -> case (unwrap pf) s of
-                          Nothing -> Nothing
-                          Just (f, s') -> (unwrap $ fmap f pa) s'
-         in
-           wrap inner
-
-
-
---- HELPERS ---
-
-{-
-
-  > :t pura ord
-  pura ord :: Parser (Char -> Int)
-
-  > :t unwrap $ pura ord
-  unwrap $ pura ord :: String -> Maybe (Char -> Int, String)
-
--}
-unwrap :: Parser a -> (String -> Maybe (a, String))
-unwrap p = runParser p
-
-{-
-
-  > :t wrap $ unwrap $ pura ord
-  wrap $ unwrap $ pura ord :: Parser (Char -> Int)
-
--}
-wrap :: (String -> Maybe (a, String)) -> Parser a
-wrap p = Parser {runParser = p}
-
-
-first :: (a -> b) -> (a,c) -> (b,c)
-first f (a,c) = (f a, c)
-
+import  Data.Char
 
 -- A parser for a value of type a is a function which takes a String
 -- represnting the input to be parsed, and succeeds or fails; if it
@@ -215,35 +55,156 @@ posInt = Parser f
 -- Your code goes below here
 ------------------------------------------------------------
 
-
---- SCRATH WORK ---
-
 {-
-  > baz ord (char 'A') "ABC"
-  Just (65,"BC")
-
-  > :t baz
-  baz :: (a -> b) -> Parser a -> String -> Maybe (b, String)
-
-  :t runParser
-  runParser :: Parser a -> String -> Maybe (a, String)
+  > runParser (fmap ord (char 'a')) "abc"
+  Just (97,"bc")
 
 -}
-baz = \f p s -> fmap (first f) $ runParser p s
-
-
+instance Functor Parser where
+   -- fmap :: (a -> b) -> Parser a -> Parser b
+   -- fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
+   fmap f p = wrap $ \s -> fmap (first f) $ (unwrap p) s
 
 {-
 
-  > :t pura "foo"
-  pura "foo" :: Parser [Char]
+  > :t pure ord <*> char 'a'
+  pure ord <*> char 'a' :: Parser Int
 
-  > :t pura ord
-  pura ord :: Parser (Char -> Int)
+  > runParser (pure ord <*> char 'a') "abc"
+  Just (97,"bc")
 
-  > :t (runParser (pura ord))
-  (runParser (pura ord)) :: String -> Maybe (Char -> Int, String)
+  > runParser (pure ord <*> char 'a') "def"
+  Nothing
 
 -}
-pura :: a -> Parser a
-pura a = Parser { runParser = \s -> Just (a, s) }
+instance Applicative Parser where
+  -- pure :: a -> Parser a
+  pure a = wrap (\s -> Just (a, s))
+  -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
+  (<*>) pf pa =
+         let
+            inner = \s -> case (unwrap pf) s of
+                          Nothing -> Nothing
+                          Just (f, s') -> (unwrap $ fmap f pa) s'
+         in
+           wrap inner
+
+
+{-
+
+  > runParser ((char 'a') <|> (char 'b')) "axy"
+  Just ('a',"xy")
+
+  > runParser ((char 'a') <|> (char 'b')) "bxy"
+  Just ('b',"xy")
+
+-}
+instance Alternative Parser where
+  empty = wrap (\s -> Nothing )
+  (<|>) pa pb =
+          let
+            pf = \s -> case unwrap pa $ s of
+                          Just v -> Just v
+                          Nothing ->
+                            unwrap pb $ s
+          in
+            wrap pf
+
+
+--- HELPERS ---
+
+
+unwrap :: Parser a -> (String -> Maybe (a, String))
+unwrap p = runParser p
+
+{-
+
+  > :t wrap $ unwrap $ pura ord
+  wrap $ unwrap $ pura ord :: Parser (Char -> Int)
+
+-}
+wrap :: (String -> Maybe (a, String)) -> Parser a
+wrap p = Parser {runParser = p}
+
+
+first :: (a -> b) -> (a,c) -> (b,c)
+first f (a,c) = (f a, c)
+
+
+-- PUR --
+
+{-
+
+  > :t pur ord
+  pur ord :: Parser (Char -> Int)
+
+  > :t unwrap $ pur ord
+  unwrap $ pur ord :: String -> Maybe (Char -> Int, String)
+
+-}
+pur :: a -> Parser a
+pur a = Parser { runParser = \s -> Just (a, s) }
+
+
+--- EXERCISE 3 ---
+
+ap :: Parser (p -> (Char, Char))
+ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
+
+bp :: Parser Char
+bp = char 'b'
+
+abp :: Parser (Char, Char)
+abp = ap <*> bp
+
+{-
+    > runParser abp "abxyz"
+    Just (('a','b'),"xyz")
+-}
+
+abp_ :: Parser ()
+abp_ = fmap (\(x,y) -> ()) abp
+
+{-
+
+  > runParser abp_ "abxyz"
+  Just ((),"xyz")
+
+-}
+
+
+posInt' = fmap (\n ->  (\n_ -> n)) posInt
+
+posInt'' = fmap (\n ->  (\n_ -> n:[n_] )) posInt
+
+space = char ' '
+
+space' = fmap (\n -> (\n_ -> n_)) space
+
+intPair :: Parser [Integer]
+intPair = posInt'' <*> (space' <*> posInt)
+
+{-
+
+  > runParser intPair "12 34xyz"
+  Just ([12,34],"xyz")
+
+-}
+
+--- EXERCISE 5 ---
+
+intOrUppercase :: Parser ()
+intOrUppercase = (fmap (\x -> ()) posInt) <|> (fmap (\c -> ()) (satisfy isUpper))
+
+{-
+
+  > runParser intOrUppercase "12abc"
+  Just ((),"abc")
+
+  > runParser intOrUppercase "Xabc"
+  Just ((),"abc")
+
+  > runParser intOrUppercase "xabc"
+  Nothing
+
+-}
