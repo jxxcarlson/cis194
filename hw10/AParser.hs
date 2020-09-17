@@ -62,8 +62,7 @@ posInt = Parser f
 -}
 instance Functor Parser where
    -- fmap :: (a -> b) -> Parser a -> Parser b
-   -- fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
-   fmap f p = wrap $ \s -> fmap (first f) $ (unwrap p) s
+   fmap f p = Parser { runParser = \s -> fmap (first f) $ runParser p s }
 
 {-
 
@@ -78,16 +77,12 @@ instance Functor Parser where
 
 -}
 instance Applicative Parser where
-  -- pure :: a -> Parser a
-  pure a = wrap (\s -> Just (a, s))
-  -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
-  (<*>) pf pa =
-         let
-            inner = \s -> case (unwrap pf) s of
-                          Nothing -> Nothing
-                          Just (f, s') -> (unwrap $ fmap f pa) s'
-         in
-           wrap inner
+   pure a = Parser (\s -> Just (a, s))
+   p1 <*> p2 = Parser (\s ->
+         case runParser p1 s of
+            Nothing -> Nothing
+            Just (f, s') -> runParser (f <$> p2) s'
+      )
 
 
 {-
@@ -99,32 +94,18 @@ instance Applicative Parser where
   Just ('b',"xy")
 
 -}
-instance Alternative Parser where
-  empty = wrap (\s -> Nothing )
-  (<|>) pa pb =
-          let
-            pf = \s -> case unwrap pa $ s of
-                          Just v -> Just v
-                          Nothing ->
-                            unwrap pb $ s
-          in
-            wrap pf
 
+
+instance Alternative Parser where
+  empty = Parser (\s -> Nothing )
+  pa <|> pb = Parser (\s ->
+            case runParser pa s of
+              Just v -> Just v
+              Nothing ->
+                runParser pb s
+          )
 
 --- HELPERS ---
-
-
-unwrap :: Parser a -> (String -> Maybe (a, String))
-unwrap p = runParser p
-
-{-
-
-  > :t wrap $ unwrap $ pura ord
-  wrap $ unwrap $ pura ord :: Parser (Char -> Int)
-
--}
-wrap :: (String -> Maybe (a, String)) -> Parser a
-wrap p = Parser {runParser = p}
 
 
 first :: (a -> b) -> (a,c) -> (b,c)
@@ -149,13 +130,15 @@ pur a = Parser { runParser = \s -> Just (a, s) }
 --- EXERCISE 3 ---
 
 ap :: Parser (p -> (Char, Char))
-ap = fmap (\c -> (\c' -> (c, 'b'))) (char 'a')
+ap = fmap (\c -> (\_ -> (c, 'b'))) (char 'a')
 
 bp :: Parser Char
 bp = char 'b'
 
 abp :: Parser (Char, Char)
 abp = ap <*> bp
+
+-- NOTE: Parser (p -> (Char, Char)) -> Parser Char -> Parser (Char, Char)
 
 {-
     > runParser abp "abxyz"
