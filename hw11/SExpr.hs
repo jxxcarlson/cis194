@@ -69,6 +69,8 @@ atom = N <$> (posInt <* spaces) <|> I <$> (ident <* spaces)
 sexpr :: Parser SExpr
 sexpr = parenthesizedExpression  <|> A <$> atom 
 
+parenthesizedExpression :: Parser SExpr 
+parenthesizedExpression = (leadingParen *> (Comb <$> (zeroOrMore sexpr))) <* trailingParen
 
 leadingParen :: Parser Char
 leadingParen = (char '(') <* spaces
@@ -76,11 +78,45 @@ leadingParen = (char '(') <* spaces
 trailingParen :: Parser Char
 trailingParen = (char ')') <* spaces
 
-parenthesizedExpression :: Parser SExpr 
-parenthesizedExpression = (leadingParen *> (Comb <$> (zeroOrMore sexpr))) <* trailingParen
+parse :: String -> Maybe SExpr
+parse source =
+  fst <$> runParser sexpr source
 
-legal :: String -> Bool
-legal source =
+-- Determine if a string representing an S-expression is valid
+valid :: String -> Bool
+valid source =
    case runParser sexpr source of
       Nothing -> False
       Just (_, residual) -> residual == ""
+
+
+data Value = Num Integer | Str String  deriving Show
+
+evalAst :: SExpr -> Maybe Value 
+evalAst sexpr =
+  case sexpr of
+    A atom ->
+      case atom of 
+        N k -> Just $ Num k
+        I str -> Just $ Str str
+    Comb list -> 
+      case head list of
+        A (I "add") -> Nothing  -- add $ map evalAst (tail list)
+        _ -> Nothing  
+
+-- valueToInt :: Value -> Maybe Integer
+-- valueToInt value = 
+--     case value of
+--       Num k -> Just k 
+--       Str _ -> Nothing 
+
+-- add :: [Maybe Value] -> Maybe Value 
+-- add values = undefined
+--   (sum <$> (map valueToInt)) values
+  
+
+-- eval :: String -> Value 
+-- eval str =
+--   case parse str of
+--     Nothing -> Undefined
+--     Just ast ->  evalAst ast
