@@ -136,6 +136,12 @@ valueToInteger value =
   > eval "(product 2 (sum 3 4))"
   Just (Num 14)
 
+  > eval "(foo 1 2)"
+  Nothing 
+
+  > eval "sum 1 2"
+  Just BadSExpr
+  
 -}
 eval :: String -> Maybe Value 
 eval str =
