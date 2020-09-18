@@ -96,8 +96,8 @@ valid source =
 
 data Value = Num Integer | Str String  deriving Show
 
-evalAst :: SExpr -> Maybe Value 
-evalAst sexpr =
+evalSExpr :: SExpr -> Maybe Value 
+evalSExpr sexpr =
   case sexpr of
     A atom ->
       case atom of 
@@ -113,7 +113,7 @@ evalAst sexpr =
 
 
 evalIntegerArgs :: [SExpr] -> Maybe [Integer]
-evalIntegerArgs args = sequenceA $ map (valueToInteger . evalAst) args
+evalIntegerArgs args = sequenceA $ map (valueToInteger . evalSExpr) args
  
 valueToInteger :: Maybe Value -> Maybe Integer
 valueToInteger value = 
@@ -140,4 +140,4 @@ eval :: String -> Maybe Value
 eval str =
   case parse str of
     Nothing -> Nothing 
-    Just ast ->  evalAst ast
+    Just ast ->  evalSExpr ast
