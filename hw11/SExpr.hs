@@ -78,14 +78,14 @@ leadingParen = (char '(') <* spaces
 trailingParen :: Parser Char
 trailingParen = (char ')') <* spaces
 
-parse :: String -> Maybe SExpr
+parse :: String -> Maybe (SExpr, String)
 parse source =
-  fst <$> runParser sexpr source
+  runParser sexpr source
 
 -- Determine if a string representing an S-expression is valid
 valid :: String -> Bool
 valid source =
-   case runParser sexpr source of
+   case parse source of
       Nothing -> False
       Just (_, residual) -> residual == ""
 
@@ -94,7 +94,7 @@ valid source =
 --  3. Evaluating S-expressions
 ------------------------------------------------------------
 
-data Value = Num Integer | Str String  deriving Show
+data Value = Num Integer | Str String  | BadSExpr deriving Show
 
 evalSExpr :: SExpr -> Maybe Value 
 evalSExpr sexpr =
@@ -121,6 +121,7 @@ valueToInteger value =
       Nothing -> Nothing 
       Just ( Num k ) -> Just k 
       Just (Str _) -> Nothing 
+      Just BadSExpr -> Nothing
 
 
 
@@ -138,6 +139,11 @@ valueToInteger value =
 -}
 eval :: String -> Maybe Value 
 eval str =
-  case parse str of
-    Nothing -> Nothing 
-    Just ast ->  evalSExpr ast
+  let 
+    result = parse str
+  in
+    if (snd <$> result) == Just "" then
+      fst <$> result >>= evalSExpr  
+    else
+      Just BadSExpr
+
