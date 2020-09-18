@@ -90,6 +90,10 @@ valid source =
       Just (_, residual) -> residual == ""
 
 
+------------------------------------------------------------
+--  3. Evaluating S-expressions
+------------------------------------------------------------
+
 data Value = Num Integer | Str String  deriving Show
 
 evalAst :: SExpr -> Maybe Value 
@@ -101,22 +105,39 @@ evalAst sexpr =
         I str -> Just $ Str str
     Comb list -> 
       case head list of
-        A (I "add") -> Nothing  -- add $ map evalAst (tail list)
+        A (I "sum") -> 
+           Num <$> sum <$> (evalIntegerArgs $ tail list)
+        A (I "product") -> 
+           Num <$> product <$> (evalIntegerArgs $ tail list)
         _ -> Nothing  
 
--- valueToInt :: Value -> Maybe Integer
--- valueToInt value = 
---     case value of
---       Num k -> Just k 
---       Str _ -> Nothing 
 
--- add :: [Maybe Value] -> Maybe Value 
--- add values = undefined
---   (sum <$> (map valueToInt)) values
-  
+evalIntegerArgs :: [SExpr] -> Maybe [Integer]
+evalIntegerArgs args = sequenceA $ map (valueToInteger . evalAst) args
+ 
+valueToInteger :: Maybe Value -> Maybe Integer
+valueToInteger value = 
+    case value of
+      Nothing -> Nothing 
+      Just ( Num k ) -> Just k 
+      Just (Str _) -> Nothing 
 
--- eval :: String -> Value 
--- eval str =
---   case parse str of
---     Nothing -> Undefined
---     Just ast ->  evalAst ast
+
+
+{-
+
+  > eval "foo"
+  Just (Str "foo")
+
+  > eval "42"
+  Just (Num 42)
+
+  > eval "(product 2 (sum 3 4))"
+  Just (Num 14)
+
+-}
+eval :: String -> Maybe Value 
+eval str =
+  case parse str of
+    Nothing -> Nothing 
+    Just ast ->  evalAst ast
