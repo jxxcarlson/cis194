@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module LogAnalysis where
+module HW02.LogAnalysis where
 
-import Log
+import HW02.Log
 
 testParse :: (String -> [LogMessage])
           -> Int
@@ -69,6 +69,12 @@ build (lm: lms) = insert lm (build lms)
 --     data MessageTree = Leaf
 --                        | Node MessageTree LogMessage MessageTree
 --        deriving (Show, Eq)
+--
+-- FROME THE TEXT:
+-- A MessageTree should be sorted by timestamp: that is, the timestamp 
+-- of a LogMessage in any Node should be greater than all timestamps 
+-- of any LogMessage in the left subtree, and less than all timestamps 
+-- of any LogMessage in the right child
 --
 -- Let p be the LogMessage to insert and let the tree into
 -- which it is inserted be 

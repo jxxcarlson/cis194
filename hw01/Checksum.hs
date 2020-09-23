@@ -1,5 +1,7 @@
 
 
+-- > toDigits 1234
+-- [1,2,3,4]
 toDigits :: Integer -> [Integer]
 toDigits n = reverse (toDigits_ n)
 
