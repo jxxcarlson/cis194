@@ -51,9 +51,3 @@ validate n =
   checkSum n == 0
 
 
--- XXX ---
-
-doubleEveryOtherRR :: [Integer] -> [Integer]
-doubleEveryOtherRR []       = []
-doubleEveryOtherRR (x:[])   = x:[]
-doubleEveryOtherRR (x:y:xs) = x:(2*y):doubleEveryOtherRR xs
