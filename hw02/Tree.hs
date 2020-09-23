@@ -3,6 +3,7 @@ module Tree where
 data Tree a = EmptyTree | Node (Tree a ) a (Tree a)
   deriving (Show, Eq)
 
+
 -- If a is of typeclass Ord, then we can speak of a tree as
 -- being ordered.  
 --   
@@ -25,20 +26,18 @@ top EmptyTree = error "The empty tree has no nodes"
 top (Node left_ a right_) = a
 
 -- > t = Node (singleton 1) 2 (singleton 3)
--- > isBigger 4 t
+-- > 4 !> t
 --   True
-isBigger :: Ord a => a -> Tree a -> Bool
-isBigger _ EmptyTree = True
-isBigger a (Node _ b _) = a > b
+(!>) :: Ord a => a -> Tree a -> Bool
+_ !> EmptyTree = True
+a !> (Node _ b _) = a > b
 
 -- > t = Node (singleton 1) 2 (singleton 3)
--- > isSmaller 0 t
+-- > 0 <=! t
 --   True
-isSmaller :: Ord a => a -> Tree a -> Bool
-isSmaller _ EmptyTree = True
-isSmaller a (Node _ b _) = a <= b
-
-
+(<=!) :: Ord a => a -> Tree a -> Bool
+_ <=! EmptyTree = True
+a <=! (Node _ b _) = a <= b
 
 
 -- > isInOrder $ Node (singleton 1) 2 (singleton 3)
@@ -51,7 +50,7 @@ isInOrder ::  Ord a => Tree a -> Bool
 isInOrder EmptyTree = True
 isInOrder (Node EmptyTree _ EmptyTree) = True
 isInOrder (Node left_ a right_) = 
-  isBigger a left_ && isSmaller a right_ && isInOrder left_ && isInOrder right_
+  a !> left_ && a <=! right_ && isInOrder left_ && isInOrder right_
 
 -- Inserting a new node into an ordered tree returns an ordered tree
 insert :: (Ord a) => a -> Tree a -> Tree a
@@ -64,6 +63,24 @@ insert a (Node left_ b right_) =
       (Node (insert a left_) b right_)
 
 
+inOrder :: Ord a => Tree a ->  [a]
+inOrder EmptyTree = []
+inOrder t@(Node left_ a right_) =  
+  if isInOrder t 
+    then inOrder left_ ++  a:(inOrder right_)
+    else error "Tree is not in order"
+
+
 s :: Tree Integer
 s = Node (singleton 1) 2 (singleton 3)
 
+s' :: Tree Integer
+s' = Node (singleton 1) 3 (singleton 2)
+
+-- Test:
+--
+-- isInOrder s
+-- True
+--
+-- isInOrder s'
+-- False
