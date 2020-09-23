@@ -20,6 +20,12 @@ data Tree a = EmptyTree | Node (Tree a ) a (Tree a)
 -- In the code below, replace the "undefined" clauses
 -- with working code.
 
+-- Final Exercise: build a tree of integer from several
+-- lists of integers and test that they are properly
+-- ordered.  Be sure to  make sure that your "isInOrder"
+-- function returns False on trees that are not properly
+-- ordered.
+
 
 -- Create a tree with one node 
 singleton :: a -> Tree a
@@ -69,6 +75,9 @@ insert :: (Ord a) => a -> Tree a -> Tree a
 insert a EmptyTree = Node EmptyTree a EmptyTree
 insert a (Node left_ b right_) = undefined
 
+build :: Ord a => [a] -> Tree a
+build [] = EmptyTree
+build (a: as) = insert a (build as)
 
 inOrder :: Ord a => Tree a ->  [a]
 inOrder EmptyTree = []

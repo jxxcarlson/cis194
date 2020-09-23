@@ -1,4 +1,4 @@
-module Tree where
+module HW02.Tree where
 
 data Tree a = EmptyTree | Node (Tree a ) a (Tree a)
   deriving (Show, Eq)
@@ -20,10 +20,10 @@ left (Node left_ _ _) = left_
 right :: Tree a -> Tree a
 right (Node _ _ right_) = right_
 
--- Return top node
-top :: Tree a -> a
-top EmptyTree = error "The empty tree has no nodes"
-top (Node left_ a right_) = a
+-- Return root node
+root :: Tree a -> a
+root EmptyTree = error "The empty tree has no nodes"
+root (Node left_ a right_) = a
 
 -- > t = Node (singleton 1) 2 (singleton 3)
 -- > 4 !> t
@@ -63,6 +63,11 @@ insert a (Node left_ b right_) =
       (Node (insert a left_) b right_)
 
 
+-- Recursively build an ordered tree from a list a's.  
+build :: Ord a => [a] -> Tree a
+build [] = EmptyTree
+build (a: as) = insert a (build as)
+
 inOrder :: Ord a => Tree a ->  [a]
 inOrder EmptyTree = []
 inOrder t@(Node left_ a right_) =  
@@ -70,6 +75,9 @@ inOrder t@(Node left_ a right_) =
     then inOrder left_ ++  a:(inOrder right_)
     else error "Tree is not in order"
 
+-- Test:
+-- > isInOrder $ build [4, 1, 2 , 10, 8]
+--   True
 
 s :: Tree Integer
 s = Node (singleton 1) 2 (singleton 3)
