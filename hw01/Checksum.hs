@@ -32,9 +32,7 @@ doubleEveryOther (x:(y:[])) = (2*x:(y:[]))
 doubleEveryOther (x:(y:xs)) = (2*x:y:doubleEveryOther xs)
 
 sumDigits :: [Integer] -> Integer
-sumDigits [] = 0
-sumDigits (x:[]) = x
-sumDigits (x:xs) = x + sumDigits xs
+sumDigits ns = (sum . concat . (map toDigits)) ns
 
 checkSum :: Integer -> Integer
 checkSum n =
@@ -51,3 +49,11 @@ checkSum1 n =
 validate :: Integer -> Bool
 validate n =
   checkSum n == 0
+
+
+-- XXX ---
+
+doubleEveryOtherRR :: [Integer] -> [Integer]
+doubleEveryOtherRR []       = []
+doubleEveryOtherRR (x:[])   = x:[]
+doubleEveryOtherRR (x:y:xs) = x:(2*y):doubleEveryOtherRR xs

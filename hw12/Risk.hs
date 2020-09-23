@@ -5,7 +5,7 @@
 -- https://gist.github.com/ijt/1258156
 -- https://hackage.haskell.org/package/MonadRandom
 
-module Risk where
+module HW12.Risk where
 
 import Control.Monad.Random
 
@@ -36,7 +36,21 @@ data Battlefield = Battlefield { attackers :: Army, defenders :: Army }
 
 threeInts :: Rand StdGen (Int, Int, Int)
 threeInts =
-getRandom >>= \i1 ->
-getRandom >>= \i2 ->
-getRandom >>= \i3 ->
-return (i1,i2,i3)
+  getRandom >>= \i1 ->
+  getRandom >>= \i2 ->
+  getRandom >>= \i3 ->
+  return (i1,i2,i3)
+
+-- NOTES:
+-- evalRandIO $ threeInts :: IO (Int, Int, Int)
+--
+-- > evalRandIO $ threeInts :: IO (Int, Int, Int)
+--   (-1855278204539649463,-3128923297145675342,6881384312351252373)
+--
+-- > :t print
+-- print :: Show a => a -> IO ()
+--
+
+main = do
+    rolls <- evalRandIO $ threeInts
+    print rolls  

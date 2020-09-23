@@ -1,4 +1,4 @@
-module HW11.AParser (Parser, runParser, satisfy, char, posInt) where
+module HW11.AParser (Parser, runParser, satisfy, char, posInt, posInt_) where
 
 import           Control.Applicative
 import           Data.Char
@@ -23,6 +23,14 @@ posInt = Parser f
       | null ns   = Nothing
       | otherwise = Just (read ns, rest)
       where (ns, rest) = span isDigit xs
+
+posInt_ :: Parser Int
+posInt_ = Parser f
+  where
+    f xs
+      | null ns   = Nothing
+      | otherwise = Just (read ns, rest)
+      where (ns, rest) = span isDigit xs      
 
 inParser f = Parser . f . runParser
 

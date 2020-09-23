@@ -164,3 +164,41 @@ eval str =
     else
       Just BadSExpr
 
+
+-- JUMPING AHEAD TO CH 12 MATERIAL ON MONADS --
+
+-- NOTE re discussion in Chapter 12 lecture notes
+-- Applicative parsers can be sequenced using <*> and <$>
+
+data Foo = Bar Int Int Ident deriving Show
+
+parseInt :: Parser Int
+parseInt = posInt_ <* spaces
+
+parseFoo :: Parser Foo
+parseFoo = Bar <$> parseInt <*> parseInt <*> ident
+
+-- Test:
+-- > runParser parseFoo "123 456 hola"
+-- Just (Bar 123 456 "hola","")
+--
+-- > runParser parseFoo "!! 123 456 hola"
+-- Nothing
+
+addOneOrTwo :: Int -> [Int]
+addOneOrTwo x = [x+1, x+2]
+
+-- Example:
+-- > [1,2,3,4] >>= addOneOrTwo
+-- [2,3,3,4,4,5,5,6]
+
+--- PARSEFILE EXMPLE ---
+
+-- replicateM :: Monad m => Int -> m a -> m [a]
+-- replicateM n m = sequence (replicate n m)
+
+-- parseFile :: Parser [[Int]]
+-- parseFile = many parseLine
+
+-- parseLine :: Parser [Int]
+-- parseLine = parseInt >>= \i -> replicateM i parseInt

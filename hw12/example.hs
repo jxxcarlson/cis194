@@ -1,3 +1,5 @@
+module HW12.Example where
+
 import Control.Monad.Random
 
 die :: RandomGen g => Rand g Int
