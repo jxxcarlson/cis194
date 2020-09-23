@@ -2,9 +2,9 @@
    due Monday, 8 April
 -}
 
-module SExpr where
+module HW11.SExpr where
 
-import AParser
+import HW11.AParser
 import Control.Applicative
 
 import Data.Char
@@ -89,6 +89,17 @@ valid source =
       Nothing -> False
       Just (_, residual) -> residual == ""
 
+
+-- Tests:
+
+-- > parse "(sum 1 2)"
+--   Just (Comb [A (I "sum"),A (N 1),A (N 2)],"")
+
+-- > parse "(product 1 2 (sum 3 4))"
+--   Just (Comb [A (I "product"),A (N 1),A (N 2),Comb [A (I "sum"),A (N 3),A (N 4)]],"")
+
+-- > parse "foo bar"
+--   Just (A (I "foo"),"bar")
 
 ------------------------------------------------------------
 --  3. Evaluating S-expressions

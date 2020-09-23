@@ -20,7 +20,7 @@ data Tree a = EmptyTree | Node (Tree a ) a (Tree a)
 -- In the code below, replace the "undefined" clauses
 -- with working code.
 
--- Final Exercise: build a tree of integer from several
+-- Final Exercise: build a tree of integers from several
 -- lists of integers and test that they are properly
 -- ordered.  Be sure to  make sure that your "isInOrder"
 -- function returns False on trees that are not properly
