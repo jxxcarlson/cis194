@@ -208,8 +208,7 @@ digit' = fmap(\c -> [c]) digit
 
 
 digit'' :: Parser ([Char] -> [Char])
-digit'' = fmap (\a -> (\b -> a ++ b )) digit'
-
+digit'' = fmap (\a -> (\b -> a ++ b )) digit'                           
 
 digits :: Parser [Char]
 digits = digit'' <*> digits <|> digit'

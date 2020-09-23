@@ -1,4 +1,4 @@
-module Brownian where
+module Brownian (path, path2D, pathV2) where
 
 {-
 
@@ -10,6 +10,8 @@ The next step is to make a render-to-SVG function.
 
 
 import Control.Monad.Random
+import Linear.V2 ( V2(..) )  
+import Linear.Vector ((^+^))
 
 
 -- 1D Brownian path of length n
@@ -20,12 +22,16 @@ path n = liftA2 (scanl (+)) (step) (steps n)
 path2D :: RandomGen g => Int -> Rand g [(Double, Double)]
 path2D n = liftA2 (scanl addPair) (step2D) (steps2D n)
 
+-- 2D Brownian path of length n using V2
+pathV2 :: RandomGen g => Int -> Rand g [(V2 Double)]
+pathV2 n = liftA2 (scanl (^+^)) (stepV2) (stepsV2 n)
+
 -- DEMO --
 
 -- type 'main' in ghci
 main = do
-    moves <- evalRandIO $ path2D 10
-    print moves
+    brownianPath <- evalRandIO $ pathV2 100
+    print brownianPath
 
 
 -- HELPERS --
@@ -39,13 +45,18 @@ liftA2 h fa fb = h <$> fa <*> fb
 step2D :: RandomGen g => Rand g (Double, Double)
 step2D = liftA2 (,) (getRandomR (-1,1)) (getRandomR (-1,1))
 
+stepV2 :: RandomGen g => Rand g (V2 Double)
+stepV2 = liftA2 V2 (getRandomR (-1,1)) (getRandomR (-1,1))
+
+
 steps :: RandomGen g => Int -> Rand g [Double]
 steps n = sequence (replicate n step)
 
-
-
 steps2D :: RandomGen g => Int -> Rand g [(Double, Double)]
 steps2D n = sequence (replicate n step2D)
+
+stepsV2 :: RandomGen g => Int -> Rand g [(V2 Double)]
+stepsV2 n = sequence (replicate n stepV2)
 
 addPair :: (Double, Double) -> (Double, Double) -> (Double, Double)
 addPair (x,y) (x', y') = (x + x', y + y')

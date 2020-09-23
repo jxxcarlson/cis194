@@ -51,22 +51,34 @@ sortLog = inOrder . build . parse
 
 -- TREE MANAGEMENT
 
+-- Convert a MessageTree to an ordered list of LogMessage.  
+-- The definition below relies of the fact that elements of
+-- the left tree are greater than elements of the the right tree.
 inOrder :: MessageTree -> [LogMessage]
 inOrder Leaf = []
 inOrder (Node left n right) =
   inOrder left ++ (n: inOrder right)
 
-
+-- Recursively build a MessageTree from a list of LogMessage.  
 build :: [LogMessage] -> MessageTree
 build [] = Leaf
 build (lm: lms) = insert lm (build lms)
 
-{-
-
-   data MessageTree = Leaf
-                     | Node MessageTree LogMessage MessageTree
-        deriving (Show, Eq)
--}
+-- Recall the definition of MessageTree
+--
+--     data MessageTree = Leaf
+--                        | Node MessageTree LogMessage MessageTree
+--        deriving (Show, Eq)
+--
+-- Let p be the LogMessage to insert and let the tree into
+-- which it is inserted be 
+--
+--         Node left q right
+--
+-- If the timestamp of p is greater than the time stamp of q,
+-- insert p in the right subtree.  Otherwise, insert it in the
+-- left subtree.
+--
 insert :: LogMessage -> MessageTree -> MessageTree
 insert msg Leaf = Node Leaf msg Leaf
 insert p@(LogMessage _ ts' _) (Node left q@(LogMessage _ ts _) right) =
