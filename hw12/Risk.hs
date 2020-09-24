@@ -86,6 +86,17 @@ decrementBattlefield i j b =
 b :: Battlefield
 b = Battlefield { attackers = 5, defenders = 6 }
 
+b' :: Rand StdGen Battlefield
+b' = pure b
+
+ba :: Battlefield
+ba = Battlefield { attackers = 1, defenders = 2 }
+
+bd :: Battlefield
+bd = Battlefield { attackers = 3, defenders = 0 }
+
+
+
 
 -- > evalRandIO $ battle b
 --   Battlefield {attackers = 3, defenders = 5}
@@ -94,13 +105,29 @@ battle battlefield =
   let 
     attackers_ = attackers battlefield
     defenders_ = defenders battlefield
-    actualAttackers = min 3 (attackers_ - 1)
+    actualAttackers = max 0 $ min 3 (attackers_ - 1)
     actualDefenders = min 2 defenders_
     genResults = battleOutcomes actualAttackers actualDefenders
     successfulAttacks = length <$> filter (\x -> x == AttackerWins) <$> genResults 
     successfulDefenses = length <$> filter (\x -> x == DefenderWins) <$> genResults 
   in 
     decrementBattlefield <$> successfulDefenses <*> successfulAttacks <*> pure battlefield
+
+
+invade_ :: Rand StdGen Battlefield -> Rand StdGen Battlefield
+invade_ b =
+  do
+    attackersExhausted <- (<=) <$> (attackers <$> b) <*> (pure 2)
+    defendersDefeated <- (==) <$> (defenders <$> b) <*> (pure 0)
+    if attackersExhausted || defendersDefeated
+      then b
+      else  invade_ $ b >>= battle
+
+-- > evalRandIO $ invade b
+--   Battlefield {attackers = 1, defenders = 5}
+invade :: Battlefield -> Rand StdGen Battlefield
+invade b = invade_ $ pure b
+
 
 
 
