@@ -87,6 +87,8 @@ b :: Battlefield
 b = Battlefield { attackers = 5, defenders = 6 }
 
 
+-- > evalRandIO $ battle b
+--   Battlefield {attackers = 3, defenders = 5}
 battle :: Battlefield -> Rand StdGen Battlefield
 battle battlefield = 
   let 
