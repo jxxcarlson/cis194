@@ -156,34 +156,31 @@ battle b = doBattle b <$> (genBattleOutcomes b)
 --- EXERCISE 3: INVASIONS ---
 
 
-invade_ :: Rand StdGen Battlefield -> Rand StdGen Battlefield
-invade_ b =
-  do
-    b' <- b
-    if attackers b' < 2 || defenders b' == 0
-      then b
-      else invade_ (b >>= battle)
-
 -- Let
 --
 --   b = Battlefield {attackers = 5, defenders = 5}
 --
--- THIS LOOKS OK:
--- > evalRandIO $ invade b 
---   Battlefield {attackers = 1, defenders = 4}
---
--- BUT THE BELOW IS WRONG! (Invasion stops too early)
 -- > evalRandIO $ invade b
--- Battlefield {attackers = 2, defenders = 3}
+-- Battlefield {attackers = 3, defenders = 0}
+--
+-- > evalRandIO $ invade b
+-- Battlefield {attackers = 1, defenders = 2}
 invade :: Battlefield -> Rand StdGen Battlefield
-invade b = invade_ $ pure b
+invade b = do
+  b' <- battle b
+  if attackers b' < 2 || defenders b' == 0 then pure b' else invade b'
+
+
 
 --- EXERCISE 4 ---
 
 invadeN :: Int -> Battlefield -> Rand StdGen [Battlefield]
-invadeN n b = replicate n <$> invade b
+invadeN n b = 
+  sequence [ invade b | i <- [1..n]]
 
 
+-- > evalRandIO $ successfulAttacks 100 b
+--   18
 successfulAttacks :: Int -> Battlefield -> Rand StdGen Int
 successfulAttacks n b = length <$> filter attackerWon <$> invadeN n b
 
@@ -191,41 +188,15 @@ successfulAttacks n b = length <$> filter attackerWon <$> invadeN n b
 attackerWon :: Battlefield -> Bool 
 attackerWon b = defenders b == 0
 
+probabilityOfSuccess_ :: Double -> Int -> Int -> Rand StdGen Double
+probabilityOfSuccess_ n attackers defenders = 
+  do
+    successes <- fromIntegral <$> successfulAttacks (round n) Battlefield {attackers = attackers, defenders = defenders}
+    return (successes / n)
 
+-- > probabilityOfSuccess 10000 4 3
+--   0.3326
+probabilityOfSuccess :: Double -> Int -> Int -> IO Double
+probabilityOfSuccess n attackers defenders = 
+  evalRandIO $ probabilityOfSuccess_ n attackers defenders 
 
-
--- main b = 
---   do
---     putStrLn "\nBattlefield:"
---     print b
---     out <- evalRandIO $ genBattleOutcomes b
---     putStrLn "\nBattle outcomes:"
---     print out
---     putStrLn ""
---     evalRandIO $ invade b 
---     putStrLn ""
-
-
--- main b = 
---   let 
---     outcomes = genBattleOutcomes b
---     finalBattlefield = doBattle b outcomes
---   in
---   do
---     putStrLn "\nBattlefield before:"
---     print b
---     out <- evalRandIO $ outcomes
---     putStrLn "\nBattle outcomes:"
---     print out
---     putStrLn ""
---     putStrLn "\nBattlefield after"
---     fb <- evalRandIO $ finalBattlefield
---     print fb
---     putStrLn "" 
-
-
-
---- HELPERS ---
-
-liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
-liftA2 h fa fb = h <$> fa <*> fb
