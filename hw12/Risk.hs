@@ -160,7 +160,7 @@ invade_ :: Rand StdGen Battlefield -> Rand StdGen Battlefield
 invade_ b =
   do
     b' <- b
-    if attackers b' < 2 || defenders b' == 2
+    if attackers b' < 2 || defenders b' == 0
       then b
       else invade_ (b >>= battle)
 
