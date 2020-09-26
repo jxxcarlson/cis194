@@ -10,7 +10,7 @@
 module HW12.Risk where
 
 import Control.Monad.Random
-import Data.List (sort)``
+import Data.List (sort)
 
 ------------------------------------------------------------
 -- Die values
@@ -123,41 +123,56 @@ genBattleOutcomes :: Battlefield -> Rand StdGen [BattleOutcome]
 genBattleOutcomes battlefield = 
     battleOutcomes $ numberOfBattles battlefield
 
--- Carry out the battle defined by the given outcomes
--- > evalRandIO $ doBattle b outcomes
---   Battlefield {attackers = 3, defenders = 5}
-doBattle :: Battlefield -> Rand StdGen [BattleOutcome] -> Rand StdGen Battlefield
+
+-- Do battle with the provided outcomes:
+doBattle :: Battlefield -> [BattleOutcome] -> Battlefield
 doBattle battlefield outcomes = 
   let 
-    successfulAttacks = length <$> filter (\x -> x == AttackerWins) <$> outcomes 
-    successfulDefenses = length <$> filter (\x -> x == DefenderWins) <$> outcomes 
+    successfulAttacks = length $ filter (\x -> x == AttackerWins)  outcomes 
+    successfulDefenses = length $ filter (\x -> x == DefenderWins) outcomes 
   in 
-    decrementBattlefield <$> successfulDefenses <*> successfulAttacks <*> pure battlefield
+    decrementBattlefield successfulDefenses successfulAttacks battlefield
 
--- Generate a new battlefeield
+
+-- Generate a new battlefeield:
+--
+--   - roll the dice, sort and pair them
+--   - determine the outcome of each battle
+--   - carry out the battles
+--
 -- > evalRandIO $ battle b
---   Battlefield {attackers = 3, defenders = 5}
+-- Battlefield {attackers = 3, defenders = 5}
+--
+-- > evalRandIO $ battle b
+-- Battlefield {attackers = 4, defenders = 4}
+--
+-- > evalRandIO $ battle b
+-- Battlefield {attackers = 3, defenders = 5}
+--
 battle :: Battlefield -> Rand StdGen Battlefield
-battle b = doBattle b (genBattleOutcomes b)
+battle b = doBattle b <$> (genBattleOutcomes b)
 
 
--- INVASIONS
+--- EXERCISE 3: INVASIONS ---
+
 
 invade_ :: Rand StdGen Battlefield -> Rand StdGen Battlefield
 invade_ b =
   do
-    attackersExhausted <- (<) <$> (attackers <$> b) <*> (pure 2)
-    defendersDefeated <- (==) <$> (defenders <$> b) <*> (pure 0)
-    if attackersExhausted || defendersDefeated
+    b' <- b
+    if attackers b' < 2 || defenders b' == 2
       then b
       else invade_ (b >>= battle)
 
---- EXERCISE 3 ---
-
--- > evalRandIO $ invade b
+-- Let
+--
+--   b = Battlefield {attackers = 5, defenders = 5}
+--
+-- THIS LOOKS OK:
+-- > evalRandIO $ invade b 
 --   Battlefield {attackers = 1, defenders = 4}
 --
--- BUT THE BELOW IS WRONG!
+-- BUT THE BELOW IS WRONG! (Invasion stops too early)
 -- > evalRandIO $ invade b
 -- Battlefield {attackers = 2, defenders = 3}
 invade :: Battlefield -> Rand StdGen Battlefield
@@ -191,22 +206,22 @@ attackerWon b = defenders b == 0
 --     putStrLn ""
 
 
-main b = 
-  let 
-    outcomes = genBattleOutcomes b
-    finalBattlefield = doBattle b outcomes
-  in
-  do
-    putStrLn "\nBattlefield before:"
-    print b
-    out <- evalRandIO $ outcomes
-    putStrLn "\nBattle outcomes:"
-    print out
-    putStrLn ""
-    putStrLn "\nBattlefield after"
-    fb <- evalRandIO $ finalBattlefield
-    print fb
-    putStrLn "" 
+-- main b = 
+--   let 
+--     outcomes = genBattleOutcomes b
+--     finalBattlefield = doBattle b outcomes
+--   in
+--   do
+--     putStrLn "\nBattlefield before:"
+--     print b
+--     out <- evalRandIO $ outcomes
+--     putStrLn "\nBattle outcomes:"
+--     print out
+--     putStrLn ""
+--     putStrLn "\nBattlefield after"
+--     fb <- evalRandIO $ finalBattlefield
+--     print fb
+--     putStrLn "" 
 
 
 
