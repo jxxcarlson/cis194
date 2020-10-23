@@ -11,6 +11,8 @@
 liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
 liftA2 h fa fb = h <$> fa <*> fb
 
+-- liftCons = liftA2 (:)
+
 type Name = String
 
 data Employee = Employee {name :: Name, phone :: String} deriving Show
@@ -47,5 +49,5 @@ main = do line <- getLine
 --           putStrLn $ "Yes, you really said" ++ line ++ " backwards!"
 
 
-instance Functor ((->) r) where
-    fmap f g = (\x -> f (g x))
+-- instance Functor ((->) r) where
+--     fmap f g = (\x -> f (g x))
